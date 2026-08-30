@@ -1,0 +1,7 @@
+{
+  "name": "roomar-webxr-assignment",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "WebXR/WebAR interior design prototype with furniture and curtains"
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RoomAR — Hiro Marker</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f5f5;color:#111}.page{width:min(800px,calc(100% - 30px));margin:30px auto;background:#fff;padding:34px;border-radius:20px;text-align:center}.page h1{margin:0 0 8px}.page p{color:#555;line-height:1.5}.marker{width:min(520px,90%);aspect-ratio:1;margin:26px auto;background:#fff;display:grid;place-items:center}.marker img{display:block;width:100%;height:100%;object-fit:contain}.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.actions button,.actions a{border:0;border-radius:10px;padding:12px 16px;background:#0f766e;color:#fff;text-decoration:none;font-weight:700;cursor:pointer}.note{font-size:.85rem}@media print{body{background:#fff}.page{width:100%;margin:0;padding:10mm;box-shadow:none}.actions,.note{display:none}.marker{width:150mm}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>RoomAR Hiro Marker</h1>
+    <p>Print this marker or display it on another screen, then open RoomAR Marker Preview and point the camera at it.</p>
+    <div class="marker">
+      <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" alt="Official AR.js Hiro marker" />
+    </div>
+    <div class="actions">
+      <button onclick="window.print()">Print marker</button>
+      <a href="./marker-ar.html">Open marker preview</a>
+    </div>
+    <p class="note">The marker image is loaded from the official AR.js GitHub repository when this page is online.</p>
+  </main>
+</body>
+</html>

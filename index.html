@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>RoomAR — Interior Design in Augmented Reality</title>
+  <link rel="stylesheet" href="./css/main.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./index.html" aria-label="RoomAR home">
+      <span class="brand-mark">R</span>
+      <span>RoomAR</span>
+    </a>
+    <a class="ghost-link" href="./guide.html">How to use</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">WebXR Interior Design</span>
+        <h1>See furniture and curtains in your room before you commit.</h1>
+        <p>
+          Place life-sized furniture on detected floors, preview curtains on walls,
+          customize colours and dimensions, and inspect catalogue products with marker-based AR.
+        </p>
+        <div class="hero-actions">
+          <a class="primary-button" href="./room-ar.html">Design my room</a>
+          <a class="secondary-button" href="./marker-ar.html">Marker preview</a>
+        </div>
+        <p class="compatibility-note">
+          Markerless WebXR works best on an AR-capable Android device using Chrome.
+          Marker preview uses the camera and a Hiro marker.
+        </p>
+      </div>
+
+      <div class="hero-card" aria-hidden="true">
+        <div class="mock-room">
+          <div class="mock-window"><span></span><span></span></div>
+          <div class="mock-curtain left"></div>
+          <div class="mock-curtain right"></div>
+          <div class="mock-sofa"><i></i><i></i><i></i></div>
+          <div class="mock-table"></div>
+          <div class="mock-reticle"></div>
+        </div>
+        <div class="hero-card-caption">
+          <strong>Markerless room mode</strong>
+          <span>Scan → place → customize</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <span class="eyebrow">Two AR experiences</span>
+        <h2>Built to demonstrate both tracking approaches.</h2>
+      </div>
+      <div class="feature-grid two-column">
+        <article class="feature-card">
+          <div class="icon-chip">⌖</div>
+          <h3>Markerless Room Design</h3>
+          <p>Use WebXR hit testing to find horizontal and vertical surfaces, then place and edit 3D objects.</p>
+          <ul>
+            <li>Floor furniture placement</li>
+            <li>Wall curtain placement</li>
+            <li>Move, rotate, scale and recolour</li>
+            <li>Collision checking between placed objects</li>
+          </ul>
+          <a class="text-link" href="./room-ar.html">Open room mode →</a>
+        </article>
+
+        <article class="feature-card">
+          <div class="icon-chip">▣</div>
+          <h3>Marker-Based Catalogue</h3>
+          <p>Point the camera at a Hiro marker to anchor a furniture or curtain product preview to the marker.</p>
+          <ul>
+            <li>Sofa, chair, table, plant and curtain models</li>
+            <li>Anchored model preview</li>
+            <li>Switch product while tracking</li>
+            <li>Printable marker page included</li>
+          </ul>
+          <a class="text-link" href="./marker-ar.html">Open marker mode →</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section catalogue-section">
+      <div class="section-heading">
+        <span class="eyebrow">Included 3D assets</span>
+        <h2>Five optimized, lightweight GLB models.</h2>
+      </div>
+      <div class="catalogue-grid">
+        <div class="product-card"><span class="product-emoji">🛋️</span><strong>Modern Sofa</strong><small>Floor</small></div>
+        <div class="product-card"><span class="product-emoji">🪑</span><strong>Lounge Chair</strong><small>Floor</small></div>
+        <div class="product-card"><span class="product-emoji">▰</span><strong>Coffee Table</strong><small>Floor</small></div>
+        <div class="product-card"><span class="product-emoji">🌿</span><strong>Indoor Plant</strong><small>Floor</small></div>
+        <div class="product-card"><span class="product-emoji">🪟</span><strong>Curtain Set</strong><small>Wall</small></div>
+      </div>
+    </section>
+
+    <section class="section final-cta">
+      <div>
+        <span class="eyebrow">Ready</span>
+        <h2>Start with the floor. Add curtains when your furniture placement is stable.</h2>
+      </div>
+      <a class="primary-button" href="./room-ar.html">Launch RoomAR</a>
+    </section>
+  </main>
+
+  <footer>
+    <span>RoomAR — INTE 42312 WebXR Assignment</span>
+    <a href="./guide.html">User guide</a>
+  </footer>
+</body>
+</html>

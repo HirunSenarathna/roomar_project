@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="theme-color" content="#020617" />
+  <title>RoomAR — Markerless Room Designer</title>
+  <link rel="stylesheet" href="./css/ar.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body class="ar-page">
+  <div id="stage" class="ar-stage"></div>
+
+  <div id="uiOverlay" class="ar-overlay">
+    <div class="top-bar">
+      <a href="./index.html" class="round-button" aria-label="Go home">←</a>
+      <div class="status-card">
+        <span id="statusDot" class="status-dot"></span>
+        <div>
+          <strong id="statusTitle">Ready for AR</strong>
+          <small id="statusText">Select a product, then enter AR.</small>
+        </div>
+      </div>
+      <button id="helpButton" class="round-button" type="button" aria-label="Help">?</button>
+    </div>
+
+    <div id="startPanel" class="start-panel">
+      <span class="eyebrow">Markerless WebXR</span>
+      <h1>Design your real room.</h1>
+      <p>Place furniture on floors and curtains on vertical surfaces. Edit each object after placement.</p>
+      <div id="arButtonMount"></div>
+      <p id="supportMessage" class="support-message">Checking WebXR support…</p>
+    </div>
+
+    <section id="cataloguePanel" class="catalogue-panel" aria-label="Product catalogue">
+      <div class="catalogue-tabs">
+        <button class="catalogue-tab active" data-filter="floor" type="button">Furniture</button>
+        <button class="catalogue-tab" data-filter="wall" type="button">Curtains</button>
+      </div>
+      <div class="product-row" id="productRow"></div>
+    </section>
+
+    <section id="editPanel" class="edit-panel hidden" aria-label="Object controls">
+      <div class="edit-heading">
+        <div>
+          <small>Selected object</small>
+          <strong id="selectedObjectName">None</strong>
+        </div>
+        <button id="nextObjectButton" class="mini-button" type="button">Next</button>
+      </div>
+      <div class="gesture-hint" aria-label="Touch gesture instructions">
+        <span>☝️ Drag = Move</span>
+        <span>🤏 Pinch = Resize</span>
+        <span>✌️ Twist = Rotate</span>
+      </div>
+      <div class="control-grid gesture-fallback-grid">
+        <button id="moveButton" class="control-button gesture-fallback" type="button">↔<span>Move fallback</span></button>
+        <button id="rotateLeftButton" class="control-button gesture-fallback" type="button">↶<span>Rotate</span></button>
+        <button id="rotateRightButton" class="control-button gesture-fallback" type="button">↷<span>Rotate</span></button>
+        <button id="scaleDownButton" class="control-button gesture-fallback" type="button">−<span>Size</span></button>
+        <button id="scaleUpButton" class="control-button gesture-fallback" type="button">+<span>Size</span></button>
+        <button id="colourButton" class="control-button" type="button">●<span>Colour</span></button>
+        <button id="deleteButton" class="control-button danger" type="button">×<span>Delete</span></button>
+      </div>
+      <div id="curtainControls" class="curtain-controls hidden">
+        <button id="widthDownButton" class="mini-button" type="button">Narrower</button>
+        <button id="widthUpButton" class="mini-button" type="button">Wider</button>
+        <button id="heightDownButton" class="mini-button" type="button">Shorter</button>
+        <button id="heightUpButton" class="mini-button" type="button">Taller</button>
+        <button id="curtainToggleButton" class="mini-button accent" type="button">Open curtains</button>
+      </div>
+    </section>
+
+    <div id="sessionActions" class="session-actions hidden">
+      <button id="placeAnotherButton" class="pill-button" type="button">＋ Place another</button>
+      <button id="clearButton" class="pill-button ghost" type="button">Clear room</button>
+      <button id="exitArButton" class="pill-button ghost" type="button">Exit AR</button>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div id="helpModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="helpTitle">RoomAR controls</h2>
+          <button id="closeHelpButton" class="round-button" type="button" aria-label="Close help">×</button>
+        </div>
+        <ol>
+          <li>Enter AR and move your phone slowly to scan the room.</li>
+          <li>Furniture needs a horizontal floor surface; curtains need a vertical wall surface.</li>
+          <li>When the green reticle appears, tap the screen to place the selected product.</li>
+          <li>After placement, touch an object to select it. Drag with one finger to move it on its current surface.</li>
+          <li>Pinch with two fingers to resize. Twist two fingers to rotate. Colour/delete remain available in the toolbar.</li>
+          <li>For curtains, use wider/narrower, taller/shorter and open/close controls.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <noscript>This experience requires JavaScript.</noscript>
+  <script type="module" src="./js/room-ar.js"></script>
+</body>
+</html>
