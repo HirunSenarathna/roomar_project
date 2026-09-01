@@ -96,126 +96,246 @@
   // =========================================
   // FIND CURTAIN PANELS
   // =========================================
-  
 
-  function configureMarkerCurtainParts() {
-    let left = model.object3D.getObjectByName("LeftCurtain");
+  // =========================================
+  // CREATE LEFT AND RIGHT CURTAIN PANELS
+  // =========================================
 
-    let right = model.object3D.getObjectByName("RightCurtain");
+  function markerCurtainFabricCandidate(root) {
+    const candidates = [];
 
-    // =======================================
-    // FALLBACK FOR DIFFERENT GLB NODE NAMES
-    // =======================================
+    root.traverse((child) => {
+      const position = child.geometry?.getAttribute?.("position");
 
-    if (!left || !right) {
-      const candidates = [];
+      if (!child.isMesh || !position || position.count < 6) {
+        return;
+      }
 
-      model.object3D.traverse((child) => {
-        if (!child || child === model.object3D) {
-          return;
-        }
-
-        const name = child.name || "";
-
-        /*
-         * Ignore curtain rods
-         * and similar objects.
-         */
-        if (/rod|rail|pole|bracket|hook|ring/i.test(name)) {
-          return;
-        }
-
-        let hasMesh = Boolean(child.isMesh);
-
-        if (!hasMesh && child.traverse) {
-          child.traverse((nested) => {
-            if (nested.isMesh) {
-              hasMesh = true;
-            }
-          });
-        }
-
-        if (!hasMesh) {
-          return;
-        }
-
-        const box = new THREE.Box3().setFromObject(child);
-
-        if (box.isEmpty()) {
-          return;
-        }
-
-        const size = new THREE.Vector3();
-
-        const center = new THREE.Vector3();
-
-        box.getSize(size);
-
-        box.getCenter(center);
-
-        const volume = Math.max(
-          0.000001,
-
-          size.x * size.y * size.z,
-        );
-
-        const boost = /curtain|drape|fabric|cloth|panel/i.test(name) ? 5 : 1;
-
-        candidates.push({
-          child,
-
-          centerX: center.x,
-
-          score: volume * boost,
-        });
-      });
-
-      candidates.sort((a, b) => b.score - a.score);
-
-      const chosen = candidates
-        .slice(0, 2)
-        .sort((a, b) => a.centerX - b.centerX);
-
-      left = chosen[0]?.child || null;
-
-      right = chosen[1]?.child || null;
-    }
-
-    markerCurtainParts =
-      left && right
-        ? {
-            left,
-            right,
-          }
-        : null;
-
-    if (markerCurtainParts) {
-      const box = new THREE.Box3().setFromObject(model.object3D);
+      child.geometry.computeBoundingBox();
 
       const size = new THREE.Vector3();
 
-      box.getSize(size);
+      child.geometry.boundingBox.getSize(size);
 
-      markerCurtainClosed = {
-        leftX: left.position.x,
+      const dimensions = [
+        Math.abs(size.x),
+        Math.abs(size.y),
+        Math.abs(size.z),
+      ].sort((a, b) => b - a);
 
-        rightX: right.position.x,
+      // Find the fabric and ignore the thin metal rail.
+      candidates.push({
+        child,
+        surfaceArea: dimensions[0] * dimensions[1],
+      });
+    });
 
-        leftScaleX: left.scale.x,
+    candidates.sort((a, b) => b.surfaceArea - a.surfaceArea);
 
-        rightScaleX: right.scale.x,
+    return candidates[0]?.child ?? null;
+  }
 
-        openDistance: THREE.MathUtils.clamp(
-          size.x * 0.18,
+  function markerGeometryForCurtainSide(sourceGeometry, dividerX, side) {
+    const source = sourceGeometry.index
+      ? sourceGeometry.toNonIndexed()
+      : sourceGeometry.clone();
 
-          0.22,
+    const position = source.getAttribute("position");
 
-          0.55,
-        ),
-      };
-    } else {
-      markerCurtainClosed = null;
+    const selectedVertices = [];
+
+    for (let vertex = 0; vertex + 2 < position.count; vertex += 3) {
+      const centreX =
+        (position.getX(vertex) +
+          position.getX(vertex + 1) +
+          position.getX(vertex + 2)) /
+        3;
+
+      const belongsToSide =
+        side === "left" ? centreX <= dividerX : centreX > dividerX;
+
+      if (belongsToSide) {
+        selectedVertices.push(vertex, vertex + 1, vertex + 2);
+      }
     }
+
+    if (!selectedVertices.length) {
+      source.dispose();
+      return null;
+    }
+
+    const result = new THREE.BufferGeometry();
+
+    for (const [name, attribute] of Object.entries(source.attributes)) {
+      const ArrayType = attribute.array?.constructor ?? Float32Array;
+
+      const values = new ArrayType(
+        selectedVertices.length * attribute.itemSize,
+      );
+
+      let targetIndex = 0;
+
+      for (const sourceIndex of selectedVertices) {
+        for (
+          let component = 0;
+          component < attribute.itemSize;
+          component += 1
+        ) {
+          values[targetIndex] =
+            attribute.array[sourceIndex * attribute.itemSize + component];
+
+          targetIndex += 1;
+        }
+      }
+
+      result.setAttribute(
+        name,
+        new THREE.BufferAttribute(
+          values,
+          attribute.itemSize,
+          attribute.normalized,
+        ),
+      );
+    }
+
+    result.computeBoundingBox();
+    result.computeBoundingSphere();
+
+    source.dispose();
+
+    return result;
+  }
+
+  function cloneMarkerCurtainMaterial(material) {
+    return Array.isArray(material)
+      ? material.map((entry) => entry.clone())
+      : material.clone();
+  }
+
+  function configureMarkerCurtainParts() {
+    markerCurtainParts = null;
+    markerCurtainClosed = null;
+
+    const fabricSource = markerCurtainFabricCandidate(model.object3D);
+
+    const parent = fabricSource?.parent;
+
+    const sourceBox = fabricSource?.geometry?.boundingBox;
+
+    if (!fabricSource || !parent || !sourceBox) {
+      console.error("Marker curtain fabric geometry was not found.");
+
+      return false;
+    }
+
+    const dividerX = (sourceBox.min.x + sourceBox.max.x) / 2;
+
+    const leftGeometry = markerGeometryForCurtainSide(
+      fabricSource.geometry,
+      dividerX,
+      "left",
+    );
+
+    const rightGeometry = markerGeometryForCurtainSide(
+      fabricSource.geometry,
+      dividerX,
+      "right",
+    );
+
+    if (!leftGeometry || !rightGeometry) {
+      leftGeometry?.dispose();
+      rightGeometry?.dispose();
+
+      console.error("Marker curtain could not be divided into two panels.");
+
+      return false;
+    }
+
+    // Preserve the original model transform.
+    const panelContainer = new THREE.Group();
+
+    panelContainer.name = "MarkerCurtainPanelContainer";
+
+    panelContainer.position.copy(fabricSource.position);
+
+    panelContainer.quaternion.copy(fabricSource.quaternion);
+
+    panelContainer.scale.copy(fabricSource.scale);
+
+    panelContainer.visible = fabricSource.visible;
+
+    const left = new THREE.Mesh(
+      leftGeometry,
+      cloneMarkerCurtainMaterial(fabricSource.material),
+    );
+
+    const right = new THREE.Mesh(
+      rightGeometry,
+      cloneMarkerCurtainMaterial(fabricSource.material),
+    );
+
+    left.name = "LeftCurtain";
+    right.name = "RightCurtain";
+
+    left.frustumCulled = false;
+    right.frustumCulled = false;
+
+    const leftCentreX =
+      (leftGeometry.boundingBox.min.x + leftGeometry.boundingBox.max.x) / 2;
+
+    const rightCentreX =
+      (rightGeometry.boundingBox.min.x + rightGeometry.boundingBox.max.x) / 2;
+
+    const leftHalfWidth =
+      (leftGeometry.boundingBox.max.x - leftGeometry.boundingBox.min.x) / 2;
+
+    const rightHalfWidth =
+      (rightGeometry.boundingBox.max.x - rightGeometry.boundingBox.min.x) / 2;
+
+    // Centre each panel around its own origin.
+    leftGeometry.translate(-leftCentreX, 0, 0);
+
+    rightGeometry.translate(-rightCentreX, 0, 0);
+
+    leftGeometry.computeBoundingBox();
+    leftGeometry.computeBoundingSphere();
+
+    rightGeometry.computeBoundingBox();
+    rightGeometry.computeBoundingSphere();
+
+    left.position.x = leftCentreX;
+    right.position.x = rightCentreX;
+
+    panelContainer.add(left, right);
+
+    parent.add(panelContainer);
+
+    // Remove only the old combined fabric.
+    // The metal rail remains visible.
+    parent.remove(fabricSource);
+
+    markerCurtainParts = {
+      left,
+      right,
+      panelContainer,
+    };
+
+    markerCurtainClosed = {
+      leftX: left.position.x,
+      rightX: right.position.x,
+
+      leftScaleX: left.scale.x,
+      rightScaleX: right.scale.x,
+
+      leftHalfWidth,
+      rightHalfWidth,
+    };
+
+    model.object3D.updateMatrixWorld(true);
+
+    console.info("Marker curtain panels configured.");
+
+    return true;
   }
 
   // =========================================
@@ -235,32 +355,48 @@
 
     const closed = markerCurtainClosed;
 
-    const distance = closed.openDistance;
+    // Opened curtain panel width.
+    const openWidth = 0.3;
+
+    const targetLeftScaleX = open
+      ? closed.leftScaleX * openWidth
+      : closed.leftScaleX;
+
+    const targetRightScaleX = open
+      ? closed.rightScaleX * openWidth
+      : closed.rightScaleX;
+
+    // Move the left panel towards the left.
+    const targetLeft = open
+      ? closed.leftX -
+        closed.leftHalfWidth * (closed.leftScaleX - targetLeftScaleX)
+      : closed.leftX;
+
+    // Move the right panel towards the right.
+    const targetRight = open
+      ? closed.rightX +
+        closed.rightHalfWidth * (closed.rightScaleX - targetRightScaleX)
+      : closed.rightX;
 
     markerCurtainAnimation = {
       startTime: performance.now(),
 
-      duration: 950,
+      duration: 1200,
 
       left,
-
       right,
 
       startLeft: left.position.x,
-
       startRight: right.position.x,
 
-      targetLeft: open ? closed.leftX - distance : closed.leftX,
-
-      targetRight: open ? closed.rightX + distance : closed.rightX,
+      targetLeft,
+      targetRight,
 
       startLeftScaleX: left.scale.x,
-
       startRightScaleX: right.scale.x,
 
-      targetLeftScaleX: open ? closed.leftScaleX * 0.58 : closed.leftScaleX,
-
-      targetRightScaleX: open ? closed.rightScaleX * 0.58 : closed.rightScaleX,
+      targetLeftScaleX,
+      targetRightScaleX,
     };
 
     markerCurtainOpen = open;
