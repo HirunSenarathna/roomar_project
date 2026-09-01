@@ -1,3 +1,202 @@
-:root{--panel:rgba(2,6,23,.78);--line:rgba(255,255,255,.15);--ink:#fff;--muted:#cbd5e1;--primary:#2dd4bf}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#020617;color:var(--ink)}a-scene{position:fixed!important;inset:0!important;width:100%!important;height:100%!important}.marker-ui{position:fixed;inset:0;pointer-events:none;padding:max(12px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom));display:flex;flex-direction:column;z-index:10}.marker-ui a,.marker-ui button,.marker-panel{pointer-events:auto}.marker-topbar{display:grid;grid-template-columns:42px 1fr 42px;gap:9px}.round-button{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(14px);color:#fff;text-decoration:none;font-weight:900}.marker-status{min-height:48px;border-radius:16px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(14px);display:flex;align-items:center;gap:10px;padding:8px 12px;min-width:0}.marker-status div{min-width:0}.marker-status strong,.marker-status small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.marker-status strong{font-size:.82rem}.marker-status small{font-size:.68rem;color:var(--muted);margin-top:2px}.dot{width:10px;height:10px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.18);flex:0 0 auto}.dot.good{background:var(--primary);box-shadow:0 0 0 4px rgba(45,212,191,.18)}.marker-panel{margin-top:auto;border-radius:22px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(16px);padding:10px;box-shadow:0 16px 40px rgba(0,0,0,.3)}.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 4px 10px}.panel-heading small,.panel-heading strong{display:block}.panel-heading small{font-size:.64rem;color:var(--muted)}.panel-heading strong{font-size:.9rem;margin-top:2px}.panel-heading a{font-size:.7rem;color:var(--primary);text-decoration:none;font-weight:800}.marker-products{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.marker-products button{min-width:0;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;padding:8px 2px;font-size:.65rem;font-weight:750}.marker-products button span{display:block;font-size:1.3rem;margin-bottom:3px}.marker-products button.active{background:rgba(45,212,191,.16);border-color:rgba(45,212,191,.75)}
-@media(max-width:430px){.marker-products button{font-size:.58rem}.marker-products button span{font-size:1.18rem}}
+:root {
+  --panel: rgba(2, 6, 23, 0.78);
+  --line: rgba(255, 255, 255, 0.15);
+  --ink: #fff;
+  --muted: #cbd5e1;
+  --primary: #2dd4bf;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: #020617;
+  color: var(--ink);
+}
+a-scene {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.marker-ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  padding: max(12px, env(safe-area-inset-top)) 10px
+    max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+.marker-ui a,
+.marker-ui button,
+.marker-panel {
+  pointer-events: auto;
+}
+.marker-topbar {
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  gap: 9px;
+}
+.round-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 900;
+}
+.marker-status {
+  min-height: 48px;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  min-width: 0;
+}
+.marker-status div {
+  min-width: 0;
+}
+.marker-status strong,
+.marker-status small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.marker-status strong {
+  font-size: 0.82rem;
+}
+.marker-status small {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18);
+  flex: 0 0 auto;
+}
+.dot.good {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.18);
+}
+.marker-panel {
+  margin-top: auto;
+  border-radius: 22px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(16px);
+  padding: 10px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 4px 10px;
+}
+.panel-heading small,
+.panel-heading strong {
+  display: block;
+}
+.panel-heading small {
+  font-size: 0.64rem;
+  color: var(--muted);
+}
+.panel-heading strong {
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+.panel-heading a {
+  font-size: 0.7rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 800;
+}
+.marker-products {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.marker-products button {
+  min-width: 0;
+  border-radius: 13px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  padding: 8px 2px;
+  font-size: 0.65rem;
+  font-weight: 750;
+}
+.marker-products button span {
+  display: block;
+  font-size: 1.3rem;
+  margin-bottom: 3px;
+}
+.marker-products button.active {
+  background: rgba(45, 212, 191, 0.16);
+  border-color: rgba(45, 212, 191, 0.75);
+}
+@media (max-width: 430px) {
+  .marker-products button {
+    font-size: 0.58rem;
+  }
+  .marker-products button span {
+    font-size: 1.18rem;
+  }
+}
+
+.marker-curtain-toggle {
+  width: 100%;
+  margin-top: 8px;
+
+  border: 1px solid rgba(45, 212, 191, 0.75);
+
+  border-radius: 13px;
+
+  background: rgba(45, 212, 191, 0.18);
+
+  color: #fff;
+
+  padding: 10px 12px;
+
+  font-size: 0.76rem;
+
+  font-weight: 850;
+}
+
+.marker-curtain-toggle:active {
+  transform: scale(0.985);
+}
+
+.hidden {
+  display: none !important;
+}

@@ -1,64 +1,119 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
-  <title>RoomAR — Marker Catalogue Preview</title>
-  <link rel="stylesheet" href="./css/marker.css" />
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.8/aframe/build/aframe-ar.js"></script>
-</head>
-<body>
-  <a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    renderer="antialias: true; alpha: true; colorManagement: true; physicallyCorrectLights: true"
-    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix;"
-  >
-    <a-assets timeout="15000">
-      <a-asset-item id="sofaModel" src="./models/sofa.glb"></a-asset-item>
-      <a-asset-item id="chairModel" src="./models/chair.glb"></a-asset-item>
-      <a-asset-item id="tableModel" src="./models/table.glb"></a-asset-item>
-      <a-asset-item id="plantModel" src="./models/plant.glb"></a-asset-item>
-      <a-asset-item id="curtainModel" src="./models/curtain.glb"></a-asset-item>
-    </a-assets>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <title>RoomAR — Marker Catalogue Preview</title>
+    <link rel="stylesheet" href="./css/marker.css" />
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.8/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body>
+    <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      renderer="antialias: true; alpha: true; colorManagement: true; physicallyCorrectLights: true"
+      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix;"
+    >
+      <a-assets timeout="15000">
+        <a-asset-item id="sofaModel" src="./models/sofa.glb"></a-asset-item>
+        <a-asset-item id="chairModel" src="./models/chair.glb"></a-asset-item>
+        <a-asset-item id="tableModel" src="./models/table.glb"></a-asset-item>
+        <a-asset-item id="plantModel" src="./models/plant.glb"></a-asset-item>
+        <a-asset-item
+          id="curtainModel"
+          src="./models/curtain.glb"
+        ></a-asset-item>
+      </a-assets>
 
-    <a-entity light="type: ambient; intensity: 1.5; color: #ffffff"></a-entity>
-    <a-entity light="type: directional; intensity: 1.1; color: #ffffff" position="1 3 2"></a-entity>
+      <a-entity
+        light="type: ambient; intensity: 1.5; color: #ffffff"
+      ></a-entity>
+      <a-entity
+        light="type: directional; intensity: 1.1; color: #ffffff"
+        position="1 3 2"
+      ></a-entity>
 
-    <a-marker preset="hiro" id="hiroMarker" smooth="true" smoothCount="6" smoothTolerance="0.01" smoothThreshold="2">
-      <!-- Static marker preview: no automatic rotation. -->
-      <a-entity id="markerModel" gltf-model="#sofaModel" position="0 0 0" rotation="0 0 0" scale="0.42 0.42 0.42"></a-entity>
-    </a-marker>
+      <a-marker
+        preset="hiro"
+        id="hiroMarker"
+        smooth="true"
+        smoothCount="6"
+        smoothTolerance="0.01"
+        smoothThreshold="2"
+      >
+        <!-- Static marker preview: no automatic rotation. -->
+        <a-entity
+          id="markerModel"
+          gltf-model="#sofaModel"
+          position="0 0 0"
+          rotation="0 0 0"
+          scale="0.42 0.42 0.42"
+        ></a-entity>
+      </a-marker>
 
-    <a-entity camera></a-entity>
-  </a-scene>
+      <a-entity camera></a-entity>
+    </a-scene>
 
-  <div class="marker-ui">
-    <div class="marker-topbar">
-      <a href="./index.html" class="round-button">←</a>
-      <div class="marker-status">
-        <span id="markerDot" class="dot"></span>
-        <div><strong id="markerStatusTitle">Searching for marker</strong><small id="markerStatusText">Point the camera at a Hiro marker.</small></div>
+    <div class="marker-ui">
+      <div class="marker-topbar">
+        <a href="./index.html" class="round-button">←</a>
+        <div class="marker-status">
+          <span id="markerDot" class="dot"></span>
+          <div>
+            <strong id="markerStatusTitle">Searching for marker</strong
+            ><small id="markerStatusText"
+              >Point the camera at a Hiro marker.</small
+            >
+          </div>
+        </div>
+        <a
+          href="./hiro-marker.html"
+          target="_blank"
+          class="round-button"
+          aria-label="Open printable marker"
+          >▣</a
+        >
       </div>
-      <a href="./hiro-marker.html" target="_blank" class="round-button" aria-label="Open printable marker">▣</a>
+
+      <section class="marker-panel">
+        <div class="panel-heading">
+          <div>
+            <small>Catalogue preview</small
+            ><strong id="markerProductName">Modern Sofa</strong>
+          </div>
+          <a href="./hiro-marker.html" target="_blank">Print marker</a>
+        </div>
+        <div class="marker-products" id="markerProducts">
+          <button class="active" data-product="sofa" type="button">
+            <span>🛋️</span>Sofa
+          </button>
+          <button data-product="chair" type="button">
+            <span>🪑</span>Chair
+          </button>
+          <button data-product="table" type="button">
+            <span>▰</span>Table
+          </button>
+          <button data-product="plant" type="button">
+            <span>🌿</span>Plant
+          </button>
+          <button data-product="curtain" type="button">
+            <span>🪟</span>Curtain
+          </button>
+        </div>
+        <button
+          id="markerCurtainToggle"
+          class="marker-curtain-toggle hidden"
+          type="button"
+        >
+          Open curtains
+        </button>
+      </section>
     </div>
 
-    <section class="marker-panel">
-      <div class="panel-heading">
-        <div><small>Catalogue preview</small><strong id="markerProductName">Modern Sofa</strong></div>
-        <a href="./hiro-marker.html" target="_blank">Print marker</a>
-      </div>
-      <div class="marker-products" id="markerProducts">
-        <button class="active" data-product="sofa" type="button"><span>🛋️</span>Sofa</button>
-        <button data-product="chair" type="button"><span>🪑</span>Chair</button>
-        <button data-product="table" type="button"><span>▰</span>Table</button>
-        <button data-product="plant" type="button"><span>🌿</span>Plant</button>
-        <button data-product="curtain" type="button"><span>🪟</span>Curtain</button>
-      </div>
-    </section>
-  </div>
-
-  <script src="./js/marker-ar.js"></script>
-</body>
+    <script src="./js/marker-ar.js"></script>
+  </body>
 </html>
