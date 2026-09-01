@@ -1,4 +1,5 @@
 (() => {
+  const MARKER_START_ROTATION = "-90 0 0";
   const products = {
     sofa: {
       name: "Modern Sofa",
@@ -95,6 +96,7 @@
   // =========================================
   // FIND CURTAIN PANELS
   // =========================================
+  
 
   function configureMarkerCurtainParts() {
     let left = model.object3D.getObjectByName("LeftCurtain");
@@ -365,12 +367,10 @@
     model.setAttribute("position", p.position);
 
     /*
-      Reset orientation when selecting
-      another model.
-
-      This makes the model begin straight.
-    */
-    model.setAttribute("rotation", "0 0 0");
+  Face the model toward the camera when
+  the marker is first detected.
+*/
+    model.setAttribute("rotation", MARKER_START_ROTATION);
 
     productName.textContent = p.name;
 
