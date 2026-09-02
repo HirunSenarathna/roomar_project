@@ -45,6 +45,8 @@ const PRODUCTS = {
   },
 };
 
+const MODEL_FRONT_OFFSET = Math.PI;
+
 const els = {
   stage: document.querySelector("#stage"),
   uiOverlay: document.querySelector("#uiOverlay"),
@@ -417,23 +419,16 @@ function geometryForCurtainSide(sourceGeometry, dividerX, side) {
   // Check every triangle and place it in the left or right panel.
   for (let vertex = 0; vertex + 2 < position.count; vertex += 3) {
     const centreX =
-      (
-        position.getX(vertex) +
+      (position.getX(vertex) +
         position.getX(vertex + 1) +
-        position.getX(vertex + 2)
-      ) / 3;
+        position.getX(vertex + 2)) /
+      3;
 
     const belongsToSide =
-      side === "left"
-        ? centreX <= dividerX
-        : centreX > dividerX;
+      side === "left" ? centreX <= dividerX : centreX > dividerX;
 
     if (belongsToSide) {
-      selectedVertices.push(
-        vertex,
-        vertex + 1,
-        vertex + 2,
-      );
+      selectedVertices.push(vertex, vertex + 1, vertex + 2);
     }
   }
 
@@ -445,25 +440,16 @@ function geometryForCurtainSide(sourceGeometry, dividerX, side) {
   const result = new THREE.BufferGeometry();
 
   for (const [name, attribute] of Object.entries(source.attributes)) {
-    const ArrayType =
-      attribute.array?.constructor ?? Float32Array;
+    const ArrayType = attribute.array?.constructor ?? Float32Array;
 
-    const values = new ArrayType(
-      selectedVertices.length * attribute.itemSize,
-    );
+    const values = new ArrayType(selectedVertices.length * attribute.itemSize);
 
     let targetIndex = 0;
 
     for (const sourceIndex of selectedVertices) {
-      for (
-        let component = 0;
-        component < attribute.itemSize;
-        component += 1
-      ) {
+      for (let component = 0; component < attribute.itemSize; component += 1) {
         values[targetIndex] =
-          attribute.array[
-            sourceIndex * attribute.itemSize + component
-          ];
+          attribute.array[sourceIndex * attribute.itemSize + component];
 
         targetIndex += 1;
       }
@@ -503,16 +489,13 @@ function configureCurtainParts(root) {
   const sourceBox = fabricSource?.geometry?.boundingBox;
 
   if (!fabricSource || !parent || !sourceBox) {
-    console.error(
-      "Curtain fabric geometry was not found in curtain.glb.",
-    );
+    console.error("Curtain fabric geometry was not found in curtain.glb.");
 
     return false;
   }
 
   // Find the horizontal centre of the curtain.
-  const dividerX =
-    (sourceBox.min.x + sourceBox.max.x) / 2;
+  const dividerX = (sourceBox.min.x + sourceBox.max.x) / 2;
 
   // Divide the single curtain mesh into left and right meshes.
   const leftGeometry = geometryForCurtainSide(
@@ -569,28 +552,16 @@ function configureCurtainParts(root) {
 
   // Find the centre and width of each panel.
   const leftCentreX =
-    (
-      leftGeometry.boundingBox.min.x +
-      leftGeometry.boundingBox.max.x
-    ) / 2;
+    (leftGeometry.boundingBox.min.x + leftGeometry.boundingBox.max.x) / 2;
 
   const rightCentreX =
-    (
-      rightGeometry.boundingBox.min.x +
-      rightGeometry.boundingBox.max.x
-    ) / 2;
+    (rightGeometry.boundingBox.min.x + rightGeometry.boundingBox.max.x) / 2;
 
   const leftHalfWidth =
-    (
-      leftGeometry.boundingBox.max.x -
-      leftGeometry.boundingBox.min.x
-    ) / 2;
+    (leftGeometry.boundingBox.max.x - leftGeometry.boundingBox.min.x) / 2;
 
   const rightHalfWidth =
-    (
-      rightGeometry.boundingBox.max.x -
-      rightGeometry.boundingBox.min.x
-    ) / 2;
+    (rightGeometry.boundingBox.max.x - rightGeometry.boundingBox.min.x) / 2;
 
   // Centre each panel's geometry around its own origin.
   leftGeometry.translate(-leftCentreX, 0, 0);
@@ -633,9 +604,7 @@ function configureCurtainParts(root) {
 
   root.updateMatrixWorld(true);
 
-  console.info(
-    "Curtain panels configured from curtain.glb geometry.",
-  );
+  console.info("Curtain panels configured from curtain.glb geometry.");
 
   return true;
 }
@@ -878,7 +847,9 @@ function setObjectAtCurrentHit(object) {
   if (product.surface === "wall") {
     const normal = state.lastSurfaceNormal.clone().normalize();
 
-    const yaw = Math.atan2(normal.x, normal.z);
+    const yaw = normalizeAngle(
+      Math.atan2(normal.x, normal.z),
+    );
 
     /*
       Curtain remains completely upright.
@@ -917,7 +888,9 @@ function setObjectAtCurrentHit(object) {
     let yaw = 0;
 
     if (toViewer.lengthSq() > 0.000001) {
-      yaw = Math.atan2(toViewer.x, toViewer.z);
+      yaw = normalizeAngle(
+        Math.atan2(toViewer.x, toViewer.z) + MODEL_FRONT_OFFSET,
+      );
     }
 
     /*
@@ -1102,34 +1075,23 @@ function resizeCurtain(axis, factor) {
 function animateCurtain(open) {
   const object = state.selectedObject;
 
-  if (
-    !object ||
-    object.userData.productId !== "curtain"
-  ) {
+  if (!object || object.userData.productId !== "curtain") {
     return;
   }
 
   const parts = object.userData.curtainParts;
   const closed = object.userData.curtainClosed;
 
-  if (
-    !parts?.left ||
-    !parts?.right ||
-    !closed
-  ) {
-    toast(
-      "The curtain model could not be prepared for animation.",
-      "error",
-    );
+  if (!parts?.left || !parts?.right || !closed) {
+    toast("The curtain model could not be prepared for animation.", "error");
 
     return;
   }
 
   // Stop the previous animation if the button is pressed quickly.
-  state.curtainAnimations =
-    state.curtainAnimations.filter(
-      (animation) => animation.root !== object,
-    );
+  state.curtainAnimations = state.curtainAnimations.filter(
+    (animation) => animation.root !== object,
+  );
 
   // Current panel positions.
   const startLeft = parts.left.position.x;
@@ -1153,15 +1115,13 @@ function animateCurtain(open) {
   // Move the left curtain towards the left.
   const targetLeft = open
     ? closed.leftX -
-      closed.leftHalfWidth *
-        (closed.leftScaleX - targetLeftScaleX)
+      closed.leftHalfWidth * (closed.leftScaleX - targetLeftScaleX)
     : closed.leftX;
 
   // Move the right curtain towards the right.
   const targetRight = open
     ? closed.rightX +
-      closed.rightHalfWidth *
-        (closed.rightScaleX - targetRightScaleX)
+      closed.rightHalfWidth * (closed.rightScaleX - targetRightScaleX)
     : closed.rightX;
 
   playCurtainSound(open);
@@ -1196,52 +1156,43 @@ function animateCurtain(open) {
 }
 
 function updateCurtainAnimations(now) {
-  state.curtainAnimations =
-    state.curtainAnimations.filter((animation) => {
-      const progress = Math.min(
-        1,
-        (now - animation.startTime) /
-          animation.duration,
-      );
+  state.curtainAnimations = state.curtainAnimations.filter((animation) => {
+    const progress = Math.min(
+      1,
+      (now - animation.startTime) / animation.duration,
+    );
 
-      // Smooth animation.
-      const eased =
-        progress *
-        progress *
-        (3 - 2 * progress);
+    // Smooth animation.
+    const eased = progress * progress * (3 - 2 * progress);
 
-      // Gather and move the left curtain.
-      animation.left.scale.x =
-        THREE.MathUtils.lerp(
-          animation.startLeftScaleX,
-          animation.targetLeftScaleX,
-          eased,
-        );
+    // Gather and move the left curtain.
+    animation.left.scale.x = THREE.MathUtils.lerp(
+      animation.startLeftScaleX,
+      animation.targetLeftScaleX,
+      eased,
+    );
 
-      animation.left.position.x =
-        THREE.MathUtils.lerp(
-          animation.startLeft,
-          animation.targetLeft,
-          eased,
-        );
+    animation.left.position.x = THREE.MathUtils.lerp(
+      animation.startLeft,
+      animation.targetLeft,
+      eased,
+    );
 
-      // Gather and move the right curtain.
-      animation.right.scale.x =
-        THREE.MathUtils.lerp(
-          animation.startRightScaleX,
-          animation.targetRightScaleX,
-          eased,
-        );
+    // Gather and move the right curtain.
+    animation.right.scale.x = THREE.MathUtils.lerp(
+      animation.startRightScaleX,
+      animation.targetRightScaleX,
+      eased,
+    );
 
-      animation.right.position.x =
-        THREE.MathUtils.lerp(
-          animation.startRight,
-          animation.targetRight,
-          eased,
-        );
+    animation.right.position.x = THREE.MathUtils.lerp(
+      animation.startRight,
+      animation.targetRight,
+      eased,
+    );
 
-      return progress < 1;
-    });
+    return progress < 1;
+  });
 }
 
 function deleteSelected() {

@@ -1,11 +1,11 @@
 (() => {
-  const MARKER_START_ROTATION = "-90 0 0";
   const products = {
     sofa: {
       name: "Modern Sofa",
       asset: "#sofaModel",
       scale: "0.42 0.42 0.42",
       position: "0 0 0",
+      rotation: "90 0 180",
     },
 
     chair: {
@@ -13,6 +13,7 @@
       asset: "#chairModel",
       scale: "0.55 0.55 0.55",
       position: "0 0 0",
+      rotation: "90 0 180",
     },
 
     table: {
@@ -20,6 +21,7 @@
       asset: "#tableModel",
       scale: "0.55 0.55 0.55",
       position: "0 0 0",
+      rotation: "90 0 180",
     },
 
     plant: {
@@ -27,6 +29,7 @@
       asset: "#plantModel",
       scale: "0.52 0.52 0.52",
       position: "0 0 0",
+      rotation: "90 0 180",
     },
 
     curtain: {
@@ -34,6 +37,7 @@
       asset: "#curtainModel",
       scale: "0.40 0.40 0.40",
       position: "0 0.48 0",
+      rotation: "-90 0 0",
     },
   };
 
@@ -506,7 +510,7 @@
   Face the model toward the camera when
   the marker is first detected.
 */
-    model.setAttribute("rotation", MARKER_START_ROTATION);
+    model.setAttribute("rotation",  p.rotation);
 
     productName.textContent = p.name;
 
