@@ -47,6 +47,17 @@ const PRODUCTS = {
 
 const MODEL_FRONT_OFFSET = Math.PI;
 
+/*
+ * Floor-placement validation.
+ *
+ * Some WebXR runtimes do not provide a reliable surface orientation for every
+ * hit and return an upright rotation instead. Checking only the hit-pose normal
+ * therefore lets a wall look like a floor. These limits add two independent
+ * checks in local-floor space.
+ */
+const FLOOR_NORMAL_MIN_Y = 0.7;
+const MIN_FLOOR_DISTANCE_BELOW_CAMERA = 0.4;
+
 const els = {
   stage: document.querySelector("#stage"),
   uiOverlay: document.querySelector("#uiOverlay"),
@@ -142,6 +153,7 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.xr.enabled = true;
+renderer.xr.setReferenceSpaceType("local-floor");
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = false;
 els.stage.appendChild(renderer.domElement);
@@ -1245,7 +1257,41 @@ function onXRSelect() {
   else if (state.editMode === "place") placeSelectedProduct();
 }
 
-function evaluateHitPose(pose) {
+function isValidFloorHit(viewerPose) {
+  /*
+   * A floor normal should mostly point upward.
+   * 0.7 allows slightly imperfect or noisy plane detection.
+   */
+  const normalIsFacingUp =
+    state.lastSurfaceNormal.y >= FLOOR_NORMAL_MIN_Y;
+
+  const cameraPosition = new THREE.Vector3();
+
+  if (viewerPose) {
+    cameraPosition.set(
+      viewerPose.transform.position.x,
+      viewerPose.transform.position.y,
+      viewerPose.transform.position.z,
+    );
+  } else {
+    getActiveXRCamera().getWorldPosition(cameraPosition);
+  }
+
+  /*
+   * A floor hit must be below the phone.
+   * This prevents most wall hits from being accepted.
+   */
+  const distanceBelowCamera =
+    cameraPosition.y - state.lastHitPosition.y;
+
+  const isBelowCamera =
+    distanceBelowCamera >=
+    MIN_FLOOR_DISTANCE_BELOW_CAMERA;
+
+  return normalIsFacingUp && isBelowCamera;
+}
+
+function evaluateHitPose(pose, viewerPose) {
   state.lastHitPosition.setFromMatrixPosition(
     new THREE.Matrix4().fromArray(pose.transform.matrix),
   );
@@ -1263,7 +1309,7 @@ function evaluateHitPose(pose) {
     state.validHit = false;
     return;
   }
-  const horizontal = state.lastSurfaceNormal.y > 0.7;
+  const horizontal = isValidFloorHit(viewerPose);
   const vertical = Math.abs(state.lastSurfaceNormal.y) < 0.4;
   state.validHit = product.surface === "floor" ? horizontal : vertical;
 
@@ -1289,7 +1335,7 @@ function evaluateHitPose(pose) {
   } else if (state.editMode === "place" || state.editMode === "move") {
     const prompt =
       product.surface === "floor"
-        ? "Aim at a horizontal floor surface."
+        ? "Aim downward at the floor, not at a wall or furniture."
         : "Aim at a vertical wall surface.";
     setStatus("Scanning surface", prompt, "warn");
   }
@@ -1384,7 +1430,16 @@ function onXRFrame(_time, frame) {
       .requestReferenceSpace("viewer")
       .then((referenceSpace) => {
         session
-          .requestHitTestSource({ space: referenceSpace })
+          .requestHitTestSource({
+            space: referenceSpace,
+
+            /*
+             * Keep the request limited to tracked planes. Surface orientation
+             * is still verified below because some runtimes fall back to an
+             * upright normal when native orientation data is unavailable.
+             */
+            entityTypes: ["plane"],
+          })
           .then((source) => {
             state.hitTestSource = source;
           });
@@ -1451,7 +1506,8 @@ function onXRFrame(_time, frame) {
     const hitTestResults = frame.getHitTestResults(state.hitTestSource);
     if (hitTestResults.length) {
       const pose = hitTestResults[0].getPose(referenceSpace);
-      if (pose) evaluateHitPose(pose);
+      const viewerPose = frame.getViewerPose(referenceSpace);
+      if (pose) evaluateHitPose(pose, viewerPose);
     } else {
       reticle.visible = false;
       state.validHit = false;
