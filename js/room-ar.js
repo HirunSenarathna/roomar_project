@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { ARButton } from "three/addons/webxr/ARButton.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const PRODUCTS = {
@@ -2146,69 +2145,238 @@ function bindUI() {
 }
 
 async function setupARButton() {
-  if (!navigator.xr) {
-    els.supportMessage.textContent =
-      "WebXR is not available in this browser. Use an AR-capable Android device with current Chrome.";
-    els.supportMessage.classList.add("error");
-    setStatus("WebXR unavailable", "Try a supported Android browser.", "bad");
-    return;
+  const compatibility = window.RoomARCompatibility;
+
+  const basicSupport = compatibility
+    ? await compatibility.check()
+    : Boolean(
+        navigator.xr &&
+          (await navigator.xr
+            .isSessionSupported("immersive-ar")
+            .catch(() => false))
+      );
+
+  if (!basicSupport) return;
+
+  /*
+   * Basic WebXR support does not guarantee that the device can start
+   * a Room AR session with hit testing.
+   */
+  if (compatibility) {
+    compatibility.show(
+      "checking",
+      "Basic WebXR support detected",
+      "Tap ENTER AR to complete the compatibility check.",
+      false
+    );
   }
 
-  const supported = await navigator.xr
-    .isSessionSupported("immersive-ar")
-    .catch(() => false);
-  if (!supported) {
-    els.supportMessage.textContent =
-      "Immersive AR is not supported on this device/browser. Marker mode may still work.";
-    els.supportMessage.classList.add("error");
-    setStatus("AR unavailable", "Immersive AR is not supported here.", "bad");
-    return;
-  }
+  setStatus(
+    "Compatibility check required",
+    "Tap ENTER AR to verify this device.",
+    "warn"
+  );
 
-  els.supportMessage.textContent =
-    "AR support detected. Use a well-lit room and move the phone slowly.";
-  els.supportMessage.classList.add("success");
-  setStatus("AR supported", "Choose a product and enter AR.", "good");
-
-  const button = ARButton.createButton(renderer, {
+  const sessionOptions = {
     requiredFeatures: ["hit-test"],
 
     optionalFeatures: [
       "dom-overlay",
       "local-floor",
-
-      // Keeps objects more stable
       "anchors",
-
-      // Allows real-world objects to hide virtual objects
-      "depth-sensing",
+      "depth-sensing"
     ],
 
     domOverlay: {
-      root: els.uiOverlay,
+      root: els.uiOverlay
     },
 
-    /*
-     * Three.js r184 currently uses the GPU WebXR
-     * depth information for its depth-sensing mesh.
-     */
     depthSensing: {
       usagePreference: ["gpu-optimized"],
+      dataFormatPreference: ["float32", "luminance-alpha"]
+    }
+  };
 
-      dataFormatPreference: ["float32", "luminance-alpha"],
-    },
-  });
+  const button = document.createElement("button");
+  button.id = "ARButton";
+  button.type = "button";
   button.textContent = "ENTER AR";
+
   els.arButtonMount.appendChild(button);
+
+  let currentSession = null;
+  let startingSession = false;
+
+  button.addEventListener("click", async () => {
+    /*
+     * End the current session if AR is already running.
+     */
+    if (currentSession) {
+      try {
+        await currentSession.end();
+      } catch (error) {
+        console.warn("Could not end AR session:", error);
+      }
+
+      return;
+    }
+
+    if (startingSession) return;
+
+    startingSession = true;
+    button.disabled = true;
+    button.textContent = "CHECKING AR…";
+
+    if (compatibility) {
+      compatibility.show(
+        "checking",
+        "Checking full Room AR compatibility…",
+        "The browser is testing surface detection and camera access.",
+        false
+      );
+    }
+
+    setStatus(
+      "Starting Room AR",
+      "Checking camera and surface-detection support.",
+      "warn"
+    );
+
+    try {
+      /*
+       * This is the real compatibility test.
+       * The session must support hit testing.
+       */
+      const session = await navigator.xr.requestSession(
+        "immersive-ar",
+        sessionOptions
+      );
+
+      renderer.xr.setReferenceSpaceType("local");
+
+      session.addEventListener(
+        "end",
+        () => {
+          currentSession = null;
+          state.xrSession = null;
+
+          button.disabled = false;
+          button.textContent = "ENTER AR";
+
+          els.startPanel.classList.remove("hidden");
+          els.cataloguePanel.classList.add("hidden");
+          els.editPanel.classList.add("hidden");
+          els.sessionActions.classList.add("hidden");
+
+          if (compatibility) {
+            compatibility.show(
+              "checking",
+              "Room AR session ended",
+              "Tap ENTER AR when you want to start again.",
+              false
+            );
+          }
+
+          setStatus(
+            "Ready for AR",
+            "Tap ENTER AR to start another session.",
+            ""
+          );
+        },
+        { once: true }
+      );
+
+      await renderer.xr.setSession(session);
+
+      currentSession = session;
+      state.xrSession = session;
+
+      button.disabled = false;
+      button.textContent = "EXIT AR";
+
+      if (compatibility) {
+        compatibility.show(
+          "success",
+          "Room AR started successfully",
+          "This device supports the required Room AR features.",
+          false
+        );
+      }
+    } catch (error) {
+      console.error("Room AR session could not start:", error);
+
+      const unsupported = error?.name === "NotSupportedError";
+
+      const permissionDenied =
+        error?.name === "NotAllowedError" ||
+        error?.name === "SecurityError";
+
+      if (unsupported) {
+        if (compatibility) {
+          compatibility.show(
+            "error",
+            "Room AR is not supported on this device",
+            "The browser was detected, but this phone cannot start the required AR surface-detection session. You can still use Marker AR.",
+            true
+          );
+        }
+
+        button.textContent = "AR NOT SUPPORTED";
+        button.disabled = true;
+
+        setStatus(
+          "Room AR unavailable",
+          "Required surface detection is not supported.",
+          "bad"
+        );
+      } else if (permissionDenied) {
+        if (compatibility) {
+          compatibility.show(
+            "error",
+            "Camera or AR permission was denied",
+            "Allow camera and AR permissions in Chrome, then try again.",
+            true
+          );
+        }
+
+        button.textContent = "TRY AR AGAIN";
+        button.disabled = false;
+
+        setStatus(
+          "Permission required",
+          "Allow camera and AR access.",
+          "bad"
+        );
+      } else {
+        if (compatibility) {
+          compatibility.show(
+            "error",
+            "Room AR could not start",
+            "Update Chrome and Google Play Services for AR, then try again. This device may not support Room AR.",
+            true
+          );
+        }
+
+        button.textContent = "TRY AR AGAIN";
+        button.disabled = false;
+
+        setStatus(
+          "AR startup failed",
+          "This device could not start Room AR.",
+          "bad"
+        );
+      }
+    } finally {
+      startingSession = false;
+    }
+  });
 
   renderer.xr.addEventListener("sessionstart", () => {
     state.xrSession = renderer.xr.getSession();
 
-    // Always start AR with full UI visible
     setUiCollapsed(false);
 
     els.startPanel.classList.add("hidden");
-
     els.cataloguePanel.classList.remove("hidden");
 
     if (state.placedObjects.length) {
@@ -2216,13 +2384,12 @@ async function setupARButton() {
     }
 
     state.editMode = "place";
-
     updateMoveButton();
 
     setStatus(
       "Scanning room",
       "Move your phone slowly to detect a floor.",
-      "warn",
+      "warn"
     );
   });
 }

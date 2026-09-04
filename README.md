@@ -27,7 +27,7 @@ RoomAR is a browser-based WebXR/WebAR prototype for an INTE 42312 assignment. It
 ```text
 roomar_project/
 ├── index.html
-├── guide.html
+
 ├── room-ar.html
 ├── marker-ar.html
 ├── hiro-marker.html
@@ -49,7 +49,7 @@ roomar_project/
 │   ├── TESTING_CHECKLIST.md
 │   └── DEMO_SCRIPT.md
 ├── manifest.webmanifest
-└── netlify.toml
+
 ```
 
 ## Important browser requirement
@@ -73,16 +73,6 @@ http://localhost:8080
 ```
 
 This is mainly for desktop/model/marker UI development. For real phone testing, deploy the folder over HTTPS.
-
-## Deploy to Netlify
-
-1. Create a new Netlify site.
-2. Drag and drop this entire folder, or connect a Git repository containing it.
-3. No build command is required.
-4. Open the generated HTTPS URL on the phone.
-5. Grant camera permission.
-
-`netlify.toml` already adds a Permissions-Policy header for camera and XR spatial tracking.
 
 ## Deploy to GitHub Pages
 
